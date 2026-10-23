@@ -104,7 +104,7 @@ export async function renderReview(job,{fontPath=process.env.PBS_PDF_FONT||'/Sys
   snapshot.snapshotHash=digest(Buffer.from(JSON.stringify(snapshot)));await atomic(join(dir,'manifest.json'),snapshot);
   state.phase='生成 PDF';await atomic(join(dir,'status.json'),state);
   doc=new PDFDocument({autoFirstPage:false,compress:true,ignoreOrientation:true,info:{Title:snapshot.book.name+(snapshot.quality==='highres'?' · 高清版':' · 审阅版'),Author:'Photo Book Studio',Subject:`${snapshot.quality==='highres'?'原片派生高清 RGB 版，印厂参数待确认，非印厂认证文件。':'预览图审阅版，非印刷文件。'}书稿 v${snapshot.book.version}；正文 1-${snapshot.contentPages||snapshot.logicalPages}，另有 ${snapshot.matterPages||0} 面前后留白。`}});
-  doc.registerFont('BookSong',fontBytes,fontName);doc.registerFont('BookCover',fontBytes,'STSongti-SC-Bold');if(kai)doc.registerFont('BookKai',kai.bytes,kai.name);doc.font('BookSong');output=createWriteStream(temp,{flags:'wx'});completion=finished(output);completion.catch(()=>{});doc.on('error',e=>output.destroy(e));doc.pipe(output);
+  doc.registerFont('BookSong',fontBytes,fontName);doc.registerFont('BookCover',fontBytes,'STSongti-SC-Bold');if(kai)doc.registerFont('BookKai',kai.bytes,kai.family);doc.font('BookSong');output=createWriteStream(temp,{flags:'wx'});completion=finished(output);completion.catch(()=>{});doc.on('error',e=>output.destroy(e));doc.pipe(output);
   const book=snapshot.book,assets=new Map(snapshot.assets.map(a=>[a.photoId,a])),w=book.printProfile.widthMm,h=book.printProfile.heightMm;
   drawCover(doc,book,assets,dir,'front');doc.outline.addItem('封面');state.completedPages=1;
   const blank=label=>{doc.addPage({size:[w*2*MM,h*MM],margin:0});doc.rect(0,0,w*2*MM,h*MM).fill(paperColor(book));doc.outline.addItem(label);};
