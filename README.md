@@ -13,7 +13,7 @@ npm ci
 npm run browser:dev
 ```
 
-Open http://127.0.0.1:4318/ in desktop Chrome or Edge. Other browsers can use the folder-input fallback; directory reauthorization and HEIC decoding depend on browser support. This is a desktop editor.
+Open http://127.0.0.1:4318/ in desktop Chrome or Edge. Other browsers can use the folder-input fallback. HEIC uses native decoding with an on-demand local decoder fallback; directory authorization still depends on browser support. This is a desktop editor.
 
 1. Create a project and select a local photo folder.
 2. Select photos and arrange pages; changes are stored in IndexedDB.
@@ -25,14 +25,20 @@ Backups contain album configuration and annotations, not original media. Each or
 
 ## Editor
 
-- Library browsing, source/search/selection filters and photo metadata.
-- Independent page layouts, saved crop/fit/zoom/position and optional captions.
+- Library browsing, full-library search, source/selection/analysis/place/people filters and photo metadata.
+- Fast individual and batch people/place/selection editing, keyboard review and project-only rotation.
+- Chapter creation, membership, order and cross-chapter moves; independent draft copies.
+- Local Codex task ZIPs with actual previews and hash-validated result import; neutral external culling/group JSON import.
+- Independent page/spread layouts, live crop/fit/zoom/position preview, explicit save/cancel, photo replacement and optional captions.
+- Persistent ten-step undo, reconnect, independent project restore and local draft cleanup.
 - Full-book overview, chapter outline, continuous thumbnail navigation and focused preview.
 - CSS physical-book shading that can be disabled; it never enters the exported PDF.
 - Cover, back-cover and spine preview, plus editable size/spine intentions.
 - Importable AI descriptions, composition, color and other visual observations matched by source hash; analyses do not automatically overwrite manual selection or annotations.
 
-The app itself does not call a model provider. Imported analyses can be prepared separately. Rendering and PDF generation happen in the browser. Large exports need enough memory and an open tab.
+The app itself does not call a model provider. Imported analyses can be prepared separately. Rendering and PDF generation happen in the browser. 150 ppi review uses cached previews; 300 ppi output requires readable originals or verified migrated derivatives. Export all body pages or a folio range, choose whether to include blank/title/closing matter, and export a combined back/spine/front cover or a standalone spine. Large exports need enough memory and an open tab.
+
+The browser/workbench comparison, exchange JSON examples and recovery details are documented in [Browser workflows](docs/public/browser-workflows.md). New projects default to facing-page books with one-to-six-photo spreads. Independent single-page books are also available with up to four photos per page. Migrated books retain their original layouts.
 
 ## PDF boundaries
 
@@ -84,4 +90,4 @@ Private photos, databases, editorial history, migration bundles, review screensh
 
 ## License
 
-[ISC](LICENSE).
+[ISC](LICENSE) for project code. Third-party decoder/ZIP licenses and source/replacement instructions are included under `apps/browser/public/licenses/`.

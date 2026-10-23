@@ -17,7 +17,7 @@ async function inspect(path,bytes){
 if(index>=0){
  const target=resolve(process.argv[index+1]||'dist-browser');
  if(target!==join(root,'dist-browser'))throw Error('Only dist-browser can be a Pages artifact');
- async function walk(dir){for(const name of await readdir(dir)){const path=join(dir,name),info=await lstat(path),rel=relative(target,path).replaceAll('\\','/');if(info.isSymbolicLink())throw Error('Symlink in artifact: '+rel);if(info.isDirectory()){if(rel!=='assets')throw Error('Unexpected artifact directory: '+rel);await walk(path);}else{if(!/^(?:index\.html|favicon\.svg|assets\/[^/]+\.(?:js|css|woff2?))$/.test(rel))throw Error('Unexpected artifact file: '+rel);await inspect(rel,await readFile(path));}}}
+ async function walk(dir){for(const name of await readdir(dir)){const path=join(dir,name),info=await lstat(path),rel=relative(target,path).replaceAll('\\','/');if(info.isSymbolicLink())throw Error('Symlink in artifact: '+rel);if(info.isDirectory()){if(!['assets','licenses'].includes(rel))throw Error('Unexpected artifact directory: '+rel);await walk(path);}else{if(!/^(?:index\.html|favicon\.svg|licenses\/(?:NOTICE|heic-to|fflate)\.txt|assets\/[^/]+\.(?:js|css|woff2?))$/.test(rel))throw Error('Unexpected artifact file: '+rel);await inspect(rel,await readFile(path));}}}
  await walk(target);
  if(!(await readFile(join(target,'index.html'),'utf8')).includes('Content-Security-Policy'))throw Error('Missing browser CSP');
 }else{

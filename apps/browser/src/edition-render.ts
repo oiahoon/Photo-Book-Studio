@@ -37,15 +37,15 @@ export async function drawEditionCover(canvas:HTMLCanvasElement,p:Project,side:'
  return warnings;
 }
 export function drawEditionMatter(canvas:HTMLCanvasElement,p:Project,kind:string,ppi=100,facing=false){const b=p.edition!,c=setup(canvas,b.printProfile.widthMm*(facing?2:1),b.printProfile.heightMm,ppi,paperColor(b));if(facing&&kind==='title')c.translate(b.printProfile.widthMm,0);if(kind!=='blank')matterTexts(b,kind).forEach(t=>text(c,t));}
-export async function exportEditionPDF(p:Project,kind:'review'|'interior'|'wrap',selected:number[],ppi:number,signal:AbortSignal,progress:(s:string)=>void){
+export async function exportEditionPDF(p:Project,kind:'review'|'interior'|'wrap',selected:number[],ppi:number,signal:AbortSignal,progress:(s:string)=>void,includeMatter=true){
  const {PDFDocument}=await import('pdf-lib'),pdf=await PDFDocument.create(),canvas=document.createElement('canvas'),b=p.edition!,w=b.printProfile.widthMm,h=b.printProfile.heightMm,warnings=new Set<string>();
  const append=async(width=w)=>{if(signal.aborted)throw Error('已取消');const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(x=>x?resolve(x):reject(Error('页面编码失败')),'image/jpeg',.94));const embedded=await pdf.embedJpg(await blob.arrayBuffer()),page=pdf.addPage([width*72/25.4,h*72/25.4]);page.drawImage(embedded,{x:0,y:0,width:width*72/25.4,height:h*72/25.4});canvas.width=canvas.height=1;await new Promise(r=>setTimeout(r,0));};
- if(kind==='wrap'){if(b.printProfile.spineMm===null)throw Error('书脊宽度待确认');(await drawEditionCover(canvas,p,'wrap',ppi,true)).forEach(x=>warnings.add(x));await append(2*w+b.printProfile.spineMm);}
+ if(kind==='wrap'){if(b.printProfile.spineMm===null)throw Error('书脊宽度待确认');(await drawEditionCover(canvas,p,'wrap',ppi,ppi>=300)).forEach(x=>warnings.add(x));await append(2*w+b.printProfile.spineMm);}
  else{
-  if(kind==='review'){progress('生成封面');(await drawEditionCover(canvas,p,'front',ppi,true)).forEach(x=>warnings.add(x));await append();}
-  const leaves=interiorLeaves(b).filter(leaf=>leaf.kind!=='body'||selected.includes(leaf.page!));
-  for(const [i,leaf]of leaves.entries()){if(signal.aborted)throw Error('已取消');progress(`生成内页 ${i+1} / ${leaves.length}`);if(leaf.kind==='body'){const s=b.spreads[leaf.spreadIndex!];(await drawEditionSpread(canvas,p,s,leaf.spreadIndex!,ppi,true,leaf.side)).forEach(x=>warnings.add(x));}else drawEditionMatter(canvas,p,leaf.kind,ppi);await append();}
-  if(kind==='review'){progress('生成封底');(await drawEditionCover(canvas,p,'back',ppi,true)).forEach(x=>warnings.add(x));await append();}
+  if(kind==='review'){progress('生成封面');(await drawEditionCover(canvas,p,'front',ppi,ppi>=300)).forEach(x=>warnings.add(x));await append();}
+  const leaves=interiorLeaves(b).filter(leaf=>leaf.kind==='body'?selected.includes(leaf.page!):includeMatter);
+  for(const [i,leaf]of leaves.entries()){if(signal.aborted)throw Error('已取消');progress(`生成内页 ${i+1} / ${leaves.length}`);if(leaf.kind==='body'){const s=b.spreads[leaf.spreadIndex!];(await drawEditionSpread(canvas,p,s,leaf.spreadIndex!,ppi,ppi>=300,leaf.side)).forEach(x=>warnings.add(x));}else drawEditionMatter(canvas,p,leaf.kind,ppi);await append();}
+  if(kind==='review'){progress('生成封底');(await drawEditionCover(canvas,p,'back',ppi,ppi>=300)).forEach(x=>warnings.add(x));await append();}
  }
- pdf.setTitle(p.name);pdf.setCreator('Photo Book Studio · Migrated Edition');const bytes=await pdf.save();return{blob:new Blob([new Uint8Array(bytes)],{type:'application/pdf'}),warnings:[...warnings],pages:pdf.getPageCount()};
+ pdf.setTitle(p.name);pdf.setCreator('Photo Book Studio · Browser Spread');const bytes=await pdf.save();return{blob:new Blob([new Uint8Array(bytes)],{type:'application/pdf'}),warnings:[...warnings],pages:pdf.getPageCount()};
 }

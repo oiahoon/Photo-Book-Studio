@@ -1,0 +1,20 @@
+Photo Book Studio third-party notices
+
+HEIC fallback: heic-to 1.6.6 (unmodified CSP build), LGPL-3.0-or-later.
+Copyright Hopper Gee and contributors. Includes libheif and its codec dependencies.
+License: heic-to.txt
+Published corresponding package sources and build script:
+https://registry.npmjs.org/heic-to/-/heic-to-1.6.6.tgz
+https://github.com/hoppergee/heic-to/tree/v1.6.6
+libheif source: https://github.com/strukturag/libheif
+
+The decoder is dynamically imported as a separate JavaScript chunk. To replace
+or modify it, install your modified heic-to package with the same csp export and
+run npm run browser:build. No photo data is sent to these source URLs.
+
+Local analysis ZIP export: fflate 0.8.3, MIT.
+Copyright (c) 2023 Arjun Barrett. License: fflate.txt
+Source: https://github.com/101arrowz/fflate
+
+Other dependencies retain their original licenses in their npm packages.
+Photo Book Studio's own code is ISC; this does not relicense dependencies.

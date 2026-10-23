@@ -9,4 +9,6 @@ export function restoreProject(p:unknown):Project;
 export type AIPlan={changes:{photoId:string;analysis:AI}[];issues:{row:number;reason:string}[]};
 export function aiImportPlan(p:Project,input:unknown):AIPlan;
 export function applyAI(p:Project,plan:AIPlan):Project;
-export function paginate(p:Project,ids:string[],count?:number):Project;
+export function paginate(p:Project,ids:string[],count?:number,chapterId?:string):Project;
+
+export function pageLayouts(count:number):{id:string;label:string;counts:number[]}[];

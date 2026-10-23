@@ -16,7 +16,7 @@ export async function importMigration(files:FileList,current:Project|null,signal
   if(signal.aborted)throw Error('已取消，未修改书稿');progress(`校验迁移素材 ${i+1} / ${manifest.entries.length}`);
   const photo=project.photos.find(p=>p.id===entry.photoId);if(!photo||photo.hash!==entry.sourceHash||seen.has(photo.id)||photo.previewRotationApplied!==entry.rotation)throw Error('迁移照片引用或方向不一致');seen.add(photo.id);
   const check=async(spec:{path:string;hash:string})=>{if(!spec||!/^media\/(previews|render)\/[a-zA-Z0-9-]+\.jpg$/.test(spec.path))throw Error('迁移素材路径无效');const file=paths.get(spec.path);if(!file||await hash(file)!==spec.hash)throw Error('迁移素材缺少或校验失败：'+spec.path);return file;};
-  const thumbnail=await check(entry.preview);let a:Asset={thumbnail};if(entry.render)a={...a,render:await check(entry.render),renderHash:entry.render.hash,sourceHash:photo.hash,renderRotation:entry.rotation,derivation:entry.render.derivation};assets.set(photo.id,a);
+  const thumbnail=await check(entry.preview);let a:Asset={thumbnail,thumbnailHash:entry.preview.hash};if(entry.render)a={...a,render:await check(entry.render),renderHash:entry.render.hash,sourceHash:photo.hash,renderRotation:entry.rotation,derivation:entry.render.derivation};assets.set(photo.id,a);
  }
  if(seen.size!==project.photos.length)throw Error('迁移素材未覆盖全部照片');if(signal.aborted)throw Error('已取消');return commit(project,assets);
 }
