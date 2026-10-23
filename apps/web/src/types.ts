@@ -1,0 +1,21 @@
+export type PersonId='me'|'annie'|'dad'|'mom';
+export type PhotoPeople={ids:PersonId[];status:'unmarked'|'confirmed';version:number;origin:'user'|null};
+export type VisualStudy={schemaVersion:1;peopleCount:number|null;shotScale:string;subjectPosition:string[];structure:string[];palette:string[];temperature:string;saturation:string;brightness:string;contrast:string;lighting:string[];interactions:string[];motifs:string[];roles:string[];cropRisk:string;evidence:string;pairing:string};
+export type Analysis = {
+  id: string; taskId: string; analyst: string; model: string; promptVersion: string;
+  sourceHash: string; previewHash: string; createdAt: string; stale: boolean; decision: 'suggested'|'accepted'|'rejected';
+  result: { visualStudy?:VisualStudy; summary: string; tags: string[]; composition: string; bookRole: string; cautions: string[]; uncertainties: string[] };
+};
+export type LocationSuggestion={city:string;site:string;confidence:'high'|'medium'|'low'|'unknown';reason:string;analysisId:string;sourceHash:string;previewHash:string;origin:'Codex'};
+export type PhotoLocation={city:string;site:string;status:'confirmed'|'suggested'|'unknown';confidence:string;reason:string;stale:boolean;version:number;suggestion:LocationSuggestion|null;manual:{city:string;site:string;reason:string;origin:'user'}|null};
+export type CurationState='unreviewed'|'keep'|'pending'|'exclude';
+export type ExternalEntry={externalId:string;relativePath:string;sourceHash:string|null;rawFlag:number;rating:number;flag:'unmarked'|'exclude'|'unknown'};
+export type ExternalSnapshot={id:string;sourceRoot:string;provider:string;createdAt:string;payload:{databaseSnapshotHash:string;entries:ExternalEntry[];groups:{id:string;rawType:number;members:string[]}[]}};
+export type Photo = { id: string; sourceId: string; relativePath: string; hash: string; bytes: number; format: string; width: number|null; height: number|null; preview: string|null; previewHash: string|null; status: string; analyses: Analysis[];
+  people:PhotoPeople;location:PhotoLocation;curation:{state:CurationState;version:number};adjustment:{rotation:number;version:number;origin?:string;reason?:string};external:null|(ExternalEntry&{snapshotId:string;stale:boolean;visualGroups:string[]}); };
+export type Task = { id: string; createdAt: string; count: number; completed?:number; manifestPath: string; resultPath: string };
+export type Job = { id: string; path: string; status: string; scanned: number; imported?: number; unchanged?: number; registered?: number; filteredRaw?:number;limited?: boolean; error?: string; errors?: {file:string;message:string}[] };
+export type StoryPhoto={photoId:string;filename:string;sourceHash:string;analysisId:string|null;reason:string;origin:'Codex'|'manual'};
+export type Chapter={id:string;title:string;description:string;origin:'Codex'|'manual';photos:StoryPhoto[]};
+export type Storyboard={id:string;name:string;chapters:Chapter[];version:number;updatedAt:string|null};
+export type Library = { sources: { id:string; name:string; path:string }[]; photos: Photo[]; tasks: Task[]; jobs: Job[];externalCulling:ExternalSnapshot[];filteredRaw:{sourceId:string;relativePath:string;hash:string}[];storyboard:Storyboard;storyboards:Storyboard[] };

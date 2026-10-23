@@ -1,0 +1,16 @@
+import {randomUUID} from 'node:crypto';
+import {transaction} from './store.mjs';
+export const PEOPLE = ['me','annie','dad','mom'];
+export const emptyPeople=()=>({ids:[],status:'unmarked',version:0,origin:null});
+function read(db,photoId){const row=db.prepare('SELECT * FROM photo_people WHERE photoId=?').get(photoId);return row?{ids:JSON.parse(row.people),status:row.status,version:row.version,origin:'user'}:emptyPeople();}
+function checkedIds(ids){if(!Array.isArray(ids)||new Set(ids).size!==ids.length||ids.some(id=>!PEOPLE.includes(id)))throw new Error('人物标签格式错误');return PEOPLE.filter(id=>ids.includes(id));}
+function items(db,targets){if(!Array.isArray(targets)||!targets.length||targets.length>500||new Set(targets.map(t=>t?.photoId)).size!==targets.length)throw new Error('请选择 1–500 张不重复照片');return targets.map(t=>{if(typeof t?.photoId!=='string'||!Number.isInteger(t.expectedVersion)||t.expectedVersion<0)throw new Error('人物标注版本错误');if(!db.prepare('SELECT active FROM photos WHERE id=?').get(t.photoId)?.active)throw new Error('照片不存在或已被替代');const previous=read(db,t.photoId);if(previous.version!==t.expectedVersion)throw new Error('人物标注已变化，请刷新后重试');return{photoId:t.photoId,previous};});}
+function save(db,changes){const undoId=randomUUID(),now=new Date().toISOString();for(const c of changes){c.current.version=c.previous.version+1;db.prepare('INSERT INTO photo_people VALUES(?,?,?,?,?) ON CONFLICT(photoId) DO UPDATE SET people=excluded.people,status=excluded.status,version=excluded.version,updatedAt=excluded.updatedAt').run(c.photoId,JSON.stringify(c.current.ids),c.current.status,c.current.version,now);}db.prepare('INSERT INTO people_history VALUES(?,?,?)').run(undoId,JSON.stringify(changes),now);return{undoId,changes};}
+// Only explicit user input. No image model, embeddings, identity inference or sidecars.
+export function setPeople(db,{targets,mode='replace',ids=[]}){return transaction(db,()=>{if(!['replace','add','remove','clear'].includes(mode))throw new Error('人物标注操作错误');ids=checkedIds(ids);if((mode==='add'||mode==='remove')&&!ids.length)throw new Error('请选择要添加或移除的人物');if(mode==='clear'&&ids.length)throw new Error('恢复未标注时不能指定人物');const changes=items(db,targets).map(({photoId,previous})=>{
+ const next=mode==='clear'?[]:mode==='replace'?ids:mode==='add'?PEOPLE.filter(id=>previous.ids.includes(id)||ids.includes(id)):previous.ids.filter(id=>!ids.includes(id));
+ // Removing a label from an unknown photo does not claim knowledge of its people.
+ const status=mode==='clear'?'unmarked':mode==='remove'?previous.status:'confirmed';
+ return{photoId,previous,current:{ids:next,status,version:0,origin:'user'}};
+ });return save(db,changes);});}
+export function undoPeople(db,{undoId,targets}){return transaction(db,()=>{const h=typeof undoId==='string'?db.prepare('SELECT * FROM people_history WHERE id=?').get(undoId):null;if(!h)throw new Error('人物标注撤销记录不存在');const history=JSON.parse(h.data),current=items(db,targets);if(current.length!==history.length||current.some(c=>!history.some(h=>h.photoId===c.photoId&&h.current.version===c.previous.version)))throw new Error('只能撤销对应照片的最新标注');return save(db,current.map(c=>({photoId:c.photoId,previous:c.previous,current:{...history.find(h=>h.photoId===c.photoId).previous,origin:'user'}})));});}

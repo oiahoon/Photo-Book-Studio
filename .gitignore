@@ -1,0 +1,22 @@
+node_modules/
+dist/
+.local/
+output/
+tmp/
+.env*
+!.env.example
+*.log
+.DS_Store
+dist-browser/
+
+# Private editorial history and real-family review material stay on this machine.
+AGENTS.md
+design-qa.md
+docs/*
+!docs/public/
+analysis-tasks/
+*.photobook
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
