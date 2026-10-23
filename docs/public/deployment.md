@@ -55,3 +55,7 @@ git push origin main
 - 私人旧 README 已留在本机的 `.local/release/`。公开说明是通用使用说明。
 - `npm run public:check` 检查 Git 索引中的发布文件；`npm run public:check -- --artifact dist-browser` 检查网页产物白名单和 CSP。
 - 导入的照片、手动标注和项目备份只留在使用者的设备和浏览器。发布新的代码不会将本机 IndexedDB 打包到网站。
+
+## CI 字体依赖
+
+干净 macOS runner 不一定下载过楷体-简。CI 显式下载 SIL OFL 授权的 [LXGW WenKai](https://github.com/lxgw/LxgwWenKai) v1.530 正楷，校验官方 SHA-256，再通过 `PBS_PDF_KAI_FONT` / `PBS_PDF_KAI_FONT_NAME` 传给 PDF 测试。字体位于 runner 临时目录，不提交、不部署，不改变用户本机字体选择；测试继续核对实际指定字体的名称、嵌入及快照独立性。
