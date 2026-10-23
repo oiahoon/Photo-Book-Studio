@@ -2,6 +2,7 @@ import type {Project,Photo} from '../../apps/browser/src/model';
 import type {BookPlacement} from '../../apps/web/src/book-types';
 export function layoutFor(count:number):string;
 export function bookPlacement(photo:Photo):BookPlacement;
+export function coverPlacement(photo:Photo):BookPlacement;
 export function addSpread(p:Project,ids:string[],chapterId?:string,title?:string):Project;
 export function replaceSpreadMembers(p:Project,spreadId:string,ids:string[]):Project;
 export type Chapter={sourceChapterId?:string;id:string;title:string;photoIds:string[];pageIds?:string[]};

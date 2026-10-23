@@ -3,6 +3,7 @@ import {editionPages} from './edition.mjs';
 import {supportsLayout} from '../publishing/geometry.mjs';
 export const layoutFor=count=>({1:'airy-left',2:'airy',3:'trio-left',4:'quartet',5:'five-left',6:'six'})[count];
 export function bookPlacement(photo){return {...placement(photo.id),sourceHash:photo.hash,filename:photo.name,preview:null,previewHash:photo.legacy?.photo?.previewHash||null,rotation:photo.rotation,orientationVersion:photo.legacy?.adjustment?.version||0};}
+export const coverPlacement=photo=>({...bookPlacement(photo),fit:'cover'});
 export function addSpread(project,ids,chapterId=crypto.randomUUID(),title=''){
  const p=structuredClone(project),photos=ids.map(id=>p.photos.find(x=>x.id===id));if(!ids.length||ids.length>6||new Set(ids).size!==ids.length||photos.some(x=>!x||x.selection==='exclude'))throw Error('请选择一到六张未排除的照片');
  if(!p.edition)throw Error('该书稿使用单页编辑');const groups=chapterGroups(p),group=groups.find(g=>g.id===chapterId||g.pageIds.includes(chapterId))||groups.find(g=>g.sourceChapterId===chapterId);const spread={id:crypto.randomUUID(),chapterId:group?.sourceChapterId||chapterId,title,layout:layoutFor(ids.length),placements:photos.map(bookPlacement)};const after=group?p.edition.spreads.findIndex(s=>s.id===group.pageIds.at(-1))+1:p.edition.spreads.length;p.edition.spreads.splice(after,0,spread);p.pages=editionPages(p.edition);return p;
